@@ -214,10 +214,10 @@ export function sendWebHookPriceUpdateV2(
     urls.forEach((url, i) => {
         sendWebhook(url, priceUpdate)
         .then(() => {
-            console.debug(`Sent ${skus.join(' + ')} update to Discord (${i})`);
+            console.debug(`Sent ${skus.join(', ')} update to Discord (${i})`);
         })
         .catch(err => {
-            console.debug(`❌ Failed to send ${skus.join(' + ')} price update webhook to Discord (${i}): `, err);
+            console.debug(`❌ Failed to send ${skus.join(', ')} price update webhook to Discord (${i}): `, err);
         });
     })
 }
