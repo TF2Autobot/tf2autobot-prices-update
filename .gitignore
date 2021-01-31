@@ -1,0 +1,14 @@
+# file folder
+files/
+
+# log folder
+logs/
+
+# ignore compiled code
+dist/
+
+# dotenv environment variables file
+.env
+
+# node_modules
+node_modules/

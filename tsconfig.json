@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "allowJs": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true,
+
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitThis": false,
+
+    "moduleResolution": "node",
+    "typeRoots": ["./types/modules", "./node_modules/@types"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+    "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],
+    "include": ["./src"]
+}

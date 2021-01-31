@@ -1,0 +1,25 @@
+{
+  "name": "tf2autobot-prices-update",
+  "version": "1.0.0",
+  "description": "Connect to prices.tf and display the items prices update to your Discord server",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "author": "IdiNium",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/death": "^1.1.1",
+    "@types/node": "^14.14.22",
+    "@types/socket.io-client": "^1.4.34",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "death": "^1.1.0",
+    "dotenv": "^8.2.0",
+    "socket.io-client": "^2.3.1",
+    "tf2-schema-2": "^1.2.3",
+    "tf2-sku-2": "^1.0.1",
+    "xmlhttprequest-ts": "^1.0.1"
+  }
+}
