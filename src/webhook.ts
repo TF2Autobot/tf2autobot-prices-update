@@ -207,15 +207,17 @@ export function sendWebHookPriceUpdateV2(
         embeds: embed
     };
 
+    const skus = data.map(d => d.sku);
+
     const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
 
     urls.forEach((url, i) => {
         sendWebhook(url, priceUpdate)
         .then(() => {
-            console.debug(`Sent ${data.map(d => d.sku).join(', ')} update to Discord (${i})`);
+            console.debug(`Sent ${skus.join(' + ')} update to Discord (${i})`);
         })
         .catch(err => {
-            console.debug(`❌ Failed to send ${data.map(d => d.sku).join(', ')} price update webhook to Discord (${i}): `, err);
+            console.debug(`❌ Failed to send ${skus.join(' + ')} price update webhook to Discord (${i}): `, err);
         });
     })
 }
