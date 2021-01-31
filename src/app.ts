@@ -7,11 +7,22 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import sendWebHookPriceUpdateV1, { sendWebhookKeyUpdate } from './webhook';
+import { sendWebhookKeyUpdate, sendWebHookPriceUpdateV2 } from './webhook';
 import SchemaManager from 'tf2-schema-2';
+
+interface Currency {
+    keys: number;
+    metal: number
+}
+
+interface Prices {
+    buy: Currency,
+    sell: Currency
+}
 
 const socketManger = new SocketManager('https://api.prices.tf');
 const schemaManager = new SchemaManager({ apiKey: process.env.STEAM_API_KEY });
+const datas: { sku: string, prices: Prices, time: number }[] = [];
 
 schemaManager.init(err => {
     if (err) {
@@ -23,7 +34,13 @@ schemaManager.init(err => {
             if (data.sku === '5021;6') {
                 sendWebhookKeyUpdate({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time }, schemaManager.schema);
             }
-            sendWebHookPriceUpdateV1({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time }, schemaManager.schema);
+
+            datas.push({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time });
+
+            if (datas.length > 2) {
+                sendWebHookPriceUpdateV2(datas, schemaManager.schema);
+                datas.length = 0;
+            }
         })
     })
 })
