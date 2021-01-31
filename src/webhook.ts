@@ -71,7 +71,7 @@ export function sendWebHookPriceUpdateV1(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
+                    text: `${data.sku} • ${String(new Date(data.time * 1000)).replace('Coordinated Universal Time', 'UTC')} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrlPrint
@@ -174,7 +174,7 @@ export function sendWebHookPriceUpdateV2(
                     'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
             },
             footer: {
-                text: `${data.sku} • ${data.time}`
+                text: `${data.sku} • ${String(new Date(data.time * 1000)).replace('Coordinated Universal Time', 'UTC')} • v${process.env.BOT_VERSION}`
             },
             thumbnail: {
                 url: itemImageUrlPrint
@@ -413,7 +413,7 @@ export function sendWebhookKeyUpdate(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
+                    text: `${data.sku} • ${String(new Date(data.time * 1000)).replace('Coordinated Universal Time', 'UTC')} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrl.image_url_large
