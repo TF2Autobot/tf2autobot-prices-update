@@ -273,6 +273,56 @@ export default function sendWebHookPriceUpdateV1(
         });
 }
 
+export function sendWebhookKeyUpdate(
+    data: { sku: string; prices: Prices; time: string; },
+    schema: SchemaManager.Schema
+): void {
+    const itemImageUrl = schema.getItemByItemName('Mann Co. Supply Crate Key');
+
+    const priceUpdate: Webhook = {
+        username: process.env.DISCORD_WEBHOOK_USERNAME,
+        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+        content: `<@&${process.env.KEYPRICE_ROLE_ID}>`,
+        embeds: [
+            {
+                author: {
+                    name: 'Mann Co. Supply Crate Key',
+                    url: `https://www.prices.tf/items/${data.sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `${data.sku} • ${data.time}`
+                },
+                thumbnail: {
+                    url: itemImageUrl.image_url_large
+                },
+                title: '',
+                fields: [
+                    {
+                        name: 'Buying for',
+                        value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, `: ''}${data.prices.buy.metal} ref`,
+                        inline: true
+                    },
+                    {
+                        name: 'Selling for',
+                        value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, `: ''}${data.prices.sell.metal} ref`,
+                        inline: true
+                    }
+                ],
+                description: process.env.NOTE,
+                color: '16766720'
+            }
+        ]
+    };
+
+    // send key price update to only key price update webhook.
+    const request = new XMLHttpRequest();
+    request.open('POST', process.env.KEYPRICE_WEBHOOK_URL);
+    request.setRequestHeader('Content-type', 'application/json');
+    request.send(JSON.stringify(priceUpdate));
+}
+
 function sendWebhook(url: string, webhook: Webhook): Promise<void> {
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();

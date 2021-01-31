@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import sendWebHookPriceUpdateV1 from './webhook';
+import sendWebHookPriceUpdateV1, { sendWebhookKeyUpdate } from './webhook';
 import SchemaManager from 'tf2-schema-2';
 
 const socketManger = new SocketManager('https://api.prices.tf');
@@ -20,6 +20,9 @@ schemaManager.init(err => {
     }
     socketManger.init().then(() => {
         socketManger.on('price', data => {
+            if (data.sku === '5021;6') {
+                sendWebhookKeyUpdate({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time }, schemaManager.schema);
+            }
             sendWebHookPriceUpdateV1({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time }, schemaManager.schema);
         })
     })
