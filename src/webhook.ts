@@ -438,10 +438,13 @@ export function sendWebhookKeyUpdate(
     };
 
     // send key price update to only key price update webhook.
-    const request = new XMLHttpRequest();
-    request.open('POST', process.env.KEYPRICE_WEBHOOK_URL);
-    request.setRequestHeader('Content-type', 'application/json');
-    request.send(JSON.stringify(priceUpdate));
+    sendWebhook(process.env.KEYPRICE_WEBHOOK_URL, priceUpdate)
+    .then(() => {
+        console.debug(`Sent key prices update to Discord`);
+    })
+    .catch(err => {
+        console.debug(`❌ Failed to send key prices update webhook to Discord: `, err);
+    });;
 }
 
 function sendWebhook(url: string, webhook: Webhook): Promise<void> {
