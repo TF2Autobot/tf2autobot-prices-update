@@ -264,13 +264,17 @@ export default function sendWebHookPriceUpdateV1(
         ]
     };
 
-    sendWebhook(process.env.WEBHOOK_URL, priceUpdate)
+    const urls = JSON.parse(process.env.WEBHOOK_URL) as string[];
+
+    urls.forEach((url, i) => {
+        sendWebhook(url, priceUpdate)
         .then(() => {
-            console.debug(`Sent ${data.sku} update to Discord.`);
+            console.debug(`Sent ${data.sku} update to Discord (${i})`);
         })
         .catch(err => {
-            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord: `, err);
+            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `, err);
         });
+    })
 }
 
 export function sendWebhookKeyUpdate(
