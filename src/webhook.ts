@@ -264,13 +264,17 @@ export default function sendWebHookPriceUpdateV1(
         ]
     };
 
-    sendWebhook(process.env.WEBHOOK_URL, priceUpdate)
+    const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+
+    urls.forEach((url, i) => {
+        sendWebhook(url, priceUpdate)
         .then(() => {
-            console.debug(`Sent ${data.sku} update to Discord.`);
+            console.debug(`Sent ${data.sku} update to Discord (${i})`);
         })
         .catch(err => {
-            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord: `, err);
+            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `, err);
         });
+    })
 }
 
 export function sendWebhookKeyUpdate(
@@ -280,8 +284,8 @@ export function sendWebhookKeyUpdate(
     const itemImageUrl = schema.getItemByItemName('Mann Co. Supply Crate Key');
 
     const priceUpdate: Webhook = {
-        username: process.env.DISCORD_WEBHOOK_USERNAME,
-        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+        username: process.env.DISPLAY_NAME,
+        avatar_url: process.env.AVATAR_URL,
         content: `<@&${process.env.KEYPRICE_ROLE_ID}>`,
         embeds: [
             {
@@ -292,7 +296,7 @@ export function sendWebhookKeyUpdate(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${data.time}`
+                    text: `${data.sku} • ${data.time} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrl.image_url_large

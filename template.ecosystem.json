@@ -1,0 +1,27 @@
+{
+    "apps": [
+        {
+            "name": "price-update",
+            "script": "dist/app.js",
+            "exec_mode": "fork",
+            "shutdown_with_message": false,
+            "max_memory_restart": "1500M",
+            "out_file": "NULL",
+            "error_file": "NULL",
+            "env": {
+                "NODE_ENV": "production",
+
+                "STEAM_API_KEY": "",
+
+                "MAIN_WEBHOOK_URL": [""],
+
+                "KEYPRICE_WEBHOOK_URL": "",
+                "KEYPRICE_ROLE_ID": "",
+
+                "DISPLAY_NAME": "",
+                "AVATAR_URL": "",
+                "NOTE": ""
+            }
+        }
+    ]
+}
