@@ -12,7 +12,7 @@ interface Prices {
     sell: Currency
 }
 
-export default function sendWebHookPriceUpdateV1(
+export function sendWebHookPriceUpdateV1(
     data: { sku: string; prices: Prices; time: number; },
     schema: SchemaManager.Schema
 ): void {
@@ -23,7 +23,205 @@ export default function sendWebHookPriceUpdateV1(
     let itemImageUrlPrint: string;
     const item = SKU.fromString(data.sku);
 
-    const australiumImageURL: { [name: string]: string } = {
+    const paintCan = paintCanImages();
+
+    if (!itemImageUrl || !item) {
+        itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+    } else if (Object.keys(paintCan).includes(`${parts[0]};6`)) {
+        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
+            paintCan[`${parts[0]};6`]
+        }512fx512f`;
+    } else if (item.australium === true) {
+        const australiumSKU = parts[0] + ';11;australium';
+        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImages()[australiumSKU]}512fx512f`;
+    } else if (item.defindex === 266) {
+        itemImageUrlPrint =
+            'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
+    } else if (item.paintkit !== null) {
+        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
+            schema.getName(newItem, false)
+        )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+    } else {
+        itemImageUrlPrint = itemImageUrl.image_url_large;
+    }
+
+    let effectsId: string;
+    if (parts[2]) {
+        effectsId = parts[2].replace('u', '');
+    }
+
+    let effectURL: string;
+    if (!effectsId) {
+        effectURL = '';
+    } else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+
+    const qualityItem = parts[1];
+    const qualityColorPrint = qualityColor()[qualityItem];
+
+    const priceUpdate: Webhook = {
+        username: process.env.DISPLAY_NAME,
+        avatar_url: process.env.AVATAR_URL,
+        content: '',
+        embeds: [
+            {
+                author: {
+                    name: schema.getName(SKU.fromString(data.sku), false),
+                    url: `https://www.prices.tf/items/${data.sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
+                },
+                thumbnail: {
+                    url: itemImageUrlPrint
+                },
+                image: {
+                    url: effectURL
+                },
+                title: '',
+                fields: [
+                    {
+                        name: 'Buying for',
+                        value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, `: ''}${data.prices.buy.metal} ref`,
+                        inline: true
+                    },
+                    {
+                        name: 'Selling for',
+                        value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, `: ''}${data.prices.sell.metal} ref`,
+                        inline: true
+                    }
+                ],
+                description: process.env.NOTE,
+                color: qualityColorPrint
+            }
+        ]
+    };
+
+    const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+
+    urls.forEach((url, i) => {
+        sendWebhook(url, priceUpdate)
+        .then(() => {
+            console.debug(`Sent ${data.sku} update to Discord (${i})`);
+        })
+        .catch(err => {
+            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `, err);
+        });
+    })
+}
+
+export function sendWebHookPriceUpdateV2(
+    data: { sku: string; prices: Prices; time: number; }[],
+    schema: SchemaManager.Schema
+): void {
+    const embed: Embeds[] = [];
+
+    const paintCan = paintCanImages();
+
+    data.forEach(data => {
+        const parts = data.sku.split(';');
+        const newSku = parts[0] + ';6';
+        const newItem = SKU.fromString(newSku);
+        const newName = schema.getName(newItem, false);
+
+        const itemImageUrl = schema.getItemByItemName(newName);
+
+        let itemImageUrlPrint: string;
+
+        const item = SKU.fromString(data.sku);
+
+        if (!itemImageUrl || !item) {
+            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+        } else if (Object.keys(paintCan).includes(newSku)) {
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
+        } else if (item.australium === true) {
+            const australiumSKU = parts[0] + ';11;australium';
+            itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImages()[australiumSKU]}512fx512f`;
+        } else if (item.defindex === 266) {
+            itemImageUrlPrint =
+                'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
+        } else if (item.paintkit !== null) {
+            itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
+                item.paintkit
+            }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+        } else {
+            itemImageUrlPrint = itemImageUrl.image_url_large;
+        }
+
+        let effectsId: string;
+
+        if (parts[2]) {
+            effectsId = parts[2].replace('u', '');
+        }
+
+        let effectURL: string;
+
+        if (!effectsId) {
+            effectURL = '';
+        } else {
+            effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+        }
+
+        const qualityItem = parts[1];
+        const qualityColorPrint = qualityColor()[qualityItem].toString();
+
+        embed.push({
+            author: {
+                name: schema.getName(SKU.fromString(data.sku), false),
+                url: `https://www.prices.tf/items/${data.sku}`,
+                icon_url:
+                    'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+            },
+            footer: {
+                text: `${data.sku} • ${data.time}`
+            },
+            thumbnail: {
+                url: itemImageUrlPrint
+            },
+            image: {
+                url: effectURL
+            },
+            title: '',
+            fields: [
+                {
+                    name: 'Buying for',
+                    value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, `: ''}${data.prices.buy.metal} ref`,
+                    inline: true
+                },
+                {
+                    name: 'Selling for',
+                    value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, `: ''}${data.prices.sell.metal} ref`,
+                    inline: true
+                }
+            ],
+            description: process.env.NOTE,
+            color: qualityColorPrint
+        });
+    });
+
+    const priceUpdate: Webhook = {
+        username: process.env.DISCORD_WEBHOOK_USERNAME,
+        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+        content: '',
+        embeds: embed
+    };
+
+    const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+
+    urls.forEach((url, i) => {
+        sendWebhook(url, priceUpdate)
+        .then(() => {
+            console.debug(`Sent ${data.map(d => d.sku).join(', ')} update to Discord (${i})`);
+        })
+        .catch(err => {
+            console.debug(`❌ Failed to send ${data.map(d => d.sku).join(', ')} price update webhook to Discord (${i}): `, err);
+        });
+    })
+}
+
+function australiumImages(): { [key: string]: string } {
+    return {
         // Australium Ambassador
         '61;11;australium':
             'IUwYcXxrxqzlHh9rZCv2ADN8Mmsgy4N4MgGBvxVQuY7G2ZW8zJlfDUKJYCqxp8lnuW34wvJM3DIHgr-8CcAu9qsKYZG08QCvM/',
@@ -85,8 +283,10 @@ export default function sendWebHookPriceUpdateV1(
         '197;11;australium':
             'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
     };
+}
 
-    const paintCan: { [name: string]: string } = {
+function paintCanImages(): { [key: string]: string } {
+    return {
         // A Color Similar to Slate
         '5052;6':
             'TbL_ROFcpnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvOvr1MdQ/',
@@ -175,8 +375,10 @@ export default function sendWebHookPriceUpdateV1(
         '5028;6':
             'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/'
     };
+}
 
-    const qualityColor: { [name: string]: string } = {
+function qualityColor(): { [key: string]: string } {
+    return {
         '0': '11711154', // Normal - #B2B2B2
         '1': '5076053', // Genuine - #4D7455
         '3': '4678289', // Vintage - #476291
@@ -190,91 +392,6 @@ export default function sendWebHookPriceUpdateV1(
         '14': '11141120', //Collector's - #AA0000
         '15': '16711422' // Decorated Weapon
     };
-
-    if (!itemImageUrl || !item) {
-        itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-    } else if (Object.keys(paintCan).includes(`${parts[0]};6`)) {
-        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
-            paintCan[`${parts[0]};6`]
-        }512fx512f`;
-    } else if (item.australium === true) {
-        const australiumSKU = parts[0] + ';11;australium';
-        itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
-    } else if (item.defindex === 266) {
-        itemImageUrlPrint =
-            'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
-    } else if (item.paintkit !== null) {
-        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
-            schema.getName(newItem, false)
-        )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
-    } else {
-        itemImageUrlPrint = itemImageUrl.image_url_large;
-    }
-
-    let effectsId: string;
-    if (parts[2]) {
-        effectsId = parts[2].replace('u', '');
-    }
-
-    let effectURL: string;
-    if (!effectsId) {
-        effectURL = '';
-    } else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
-
-    const qualityItem = parts[1];
-    const qualityColorPrint = qualityColor[qualityItem];
-
-    const priceUpdate: Webhook = {
-        username: process.env.DISPLAY_NAME,
-        avatar_url: process.env.AVATAR_URL,
-        content: '',
-        embeds: [
-            {
-                author: {
-                    name: schema.getName(SKU.fromString(data.sku), false),
-                    url: `https://www.prices.tf/items/${data.sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                },
-                footer: {
-                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
-                },
-                thumbnail: {
-                    url: itemImageUrlPrint
-                },
-                image: {
-                    url: effectURL
-                },
-                title: '',
-                fields: [
-                    {
-                        name: 'Buying for',
-                        value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, `: ''}${data.prices.buy.metal} ref`,
-                        inline: true
-                    },
-                    {
-                        name: 'Selling for',
-                        value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, `: ''}${data.prices.sell.metal} ref`,
-                        inline: true
-                    }
-                ],
-                description: process.env.NOTE,
-                color: qualityColorPrint
-            }
-        ]
-    };
-
-    const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
-
-    urls.forEach((url, i) => {
-        sendWebhook(url, priceUpdate)
-        .then(() => {
-            console.debug(`Sent ${data.sku} update to Discord (${i})`);
-        })
-        .catch(err => {
-            console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `, err);
-        });
-    })
 }
 
 export function sendWebhookKeyUpdate(
