@@ -264,7 +264,7 @@ export default function sendWebHookPriceUpdateV1(
         ]
     };
 
-    const urls = JSON.parse(process.env.WEBHOOK_URL) as string[];
+    const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
 
     urls.forEach((url, i) => {
         sendWebhook(url, priceUpdate)
@@ -284,8 +284,8 @@ export function sendWebhookKeyUpdate(
     const itemImageUrl = schema.getItemByItemName('Mann Co. Supply Crate Key');
 
     const priceUpdate: Webhook = {
-        username: process.env.DISCORD_WEBHOOK_USERNAME,
-        avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+        username: process.env.DISPLAY_NAME,
+        avatar_url: process.env.AVATAR_URL,
         content: `<@&${process.env.KEYPRICE_ROLE_ID}>`,
         embeds: [
             {
