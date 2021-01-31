@@ -13,7 +13,7 @@ interface Prices {
 }
 
 export default function sendWebHookPriceUpdateV1(
-    data: { sku: string; prices: Prices; time: string; },
+    data: { sku: string; prices: Prices; time: number; },
     schema: SchemaManager.Schema
 ): void {
     const parts = data.sku.split(';');
@@ -237,7 +237,7 @@ export default function sendWebHookPriceUpdateV1(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${data.time} • v${process.env.BOT_VERSION}`
+                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrlPrint
@@ -278,7 +278,7 @@ export default function sendWebHookPriceUpdateV1(
 }
 
 export function sendWebhookKeyUpdate(
-    data: { sku: string; prices: Prices; time: string; },
+    data: { sku: string; prices: Prices; time: number; },
     schema: SchemaManager.Schema
 ): void {
     const itemImageUrl = schema.getItemByItemName('Mann Co. Supply Crate Key');
@@ -296,7 +296,7 @@ export function sendWebhookKeyUpdate(
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${data.time} • v${process.env.BOT_VERSION}`
+                    text: `${data.sku} • ${new Date(data.time * 1000)} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
                     url: itemImageUrl.image_url_large
