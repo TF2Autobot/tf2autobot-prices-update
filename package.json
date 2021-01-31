@@ -1,6 +1,6 @@
 {
   "name": "tf2autobot-prices-update",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Connect to prices.tf and display the items prices update to your Discord server",
   "main": "index.js",
   "scripts": {
