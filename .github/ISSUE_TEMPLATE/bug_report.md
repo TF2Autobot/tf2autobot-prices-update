@@ -9,7 +9,7 @@ assignees: ''
 
 <!--
   Your issue may already be reported!
-  Please search on the [issue tracker](https://github.com/TF2Autobot/tf2autobot-prices-update/search?type=Issues) before creating one.
+  Please search on the [issue tracker](https://github.com/TF2Autobot/pricestf-discord/search?type=Issues) before creating one.
 -->
 
 **Describe the bug**

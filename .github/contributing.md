@@ -34,7 +34,7 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 
 #### How to submit a bug report
 
-Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/TF2Autobot/tf2autobot-prices-update/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
+Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you have determined that it is a bug, create an issue and provide following information by filling in [the template](https://github.com/TF2Autobot/pricestf-discord/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
 
 #### Before submitting a bug report
 
@@ -45,7 +45,7 @@ Explain the problem and include additional details to help reproduce the problem
 * **Describe the behavior you observed following the steps** and point out what the problem is with the behavior.
 * **Describe what you expected to see instead and why.**
 * **Include screenshots and GIFs** which show you following the described steps and clearly demonstrate the problem.
-* **If you're reporting that TF2Autobot GiveawayBot crashed** then include the crash report with a stack trace. Crash reports are saved in `~/tf2autobot-prices-update/logs/<STEAM_ACCOUNT_NAME>.error.log`.
+* **If you're reporting that TF2Autobot GiveawayBot crashed** then include the crash report with a stack trace. Crash reports are saved in `~/pricestf-discord/logs/<STEAM_ACCOUNT_NAME>.error.log`.
 
 Provide more context by answering these questions:
 
@@ -59,7 +59,7 @@ Before suggesting changes, please check [this list](#before-submitting-a-feature
 
 #### How to suggest changes
 
-Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/TF2Autobot/tf2autobot-prices-update/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
+Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue and fill in the [the template](https://github.com/TF2Autobot/pricestf-discord/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
 
 #### Before submitting a feature request
 
@@ -70,7 +70,7 @@ Just like [bug reports](#reporting-bugs), feature requests are tracked as [GitHu
 
 When contributing to this repository, please first discuss the change you wish to make via issue, or any other method with the owners or contributors of this repository before making a change.
 
-All pull requests should be made to [the development branch](https://github.com/TF2Autobot/tf2autobot-prices-update/tree/development). When a new release is made the development branch will be merged with the master branch.
+All pull requests should be made to [the development branch](https://github.com/TF2Autobot/pricestf-discord/tree/development). When a new release is made the development branch will be merged with the master branch.
 
 Please make sure that you follow the [style guides](#styleguides).
 
@@ -99,7 +99,7 @@ The body of the commit message should be one or more paragraphs, explaining
 things in more detail. Please word-wrap to keep columns to 72 characters or
 less.
 
-Fixes: https://github.com/TF2Autobot/tf2autobot-prices-update/issues/1337
+Fixes: https://github.com/TF2Autobot/pricestf-discord/issues/1337
 Refs: https://eslint.org/docs/rules/space-in-parens.html
 ```
 

@@ -2,13 +2,13 @@
 
 <div align="center"><img src="https://user-images.githubusercontent.com/47635037/100915844-e05e7380-350f-11eb-96f1-6d61141c4a44.png" alt="TF2Autobot" style="display: block; margin-left: auto; margin-right: auto;"></div>
 
-![GitHub package version](https://img.shields.io/github/package-json/v/TF2Autobot/tf2autobot-prices-update.svg)
-[![Build Status](https://img.shields.io/github/workflow/status/TF2Autobot/tf2autobot-prices-update/CI/development)](https://github.com/TF2Autobot/tf2autobot-prices-update/actions)
-[![GitHub issues](https://img.shields.io/github/issues/TF2Autobot/tf2autobot-prices-update)](https://github.com/TF2Autobot/tf2autobot-prices-update/issues)
-[![GitHub forks](https://img.shields.io/github/forks/TF2Autobot/tf2autobot-prices-update)](https://github.com/TF2Autobot/tf2autobot-prices-update/network/members)
-[![GitHub stars](https://img.shields.io/github/stars/TF2Autobot/tf2autobot-prices-update)](https://github.com/TF2Autobot/tf2autobot-prices-update/stargazers)
+![GitHub package version](https://img.shields.io/github/package-json/v/TF2Autobot/pricestf-discord.svg)
+[![Build Status](https://img.shields.io/github/workflow/status/TF2Autobot/pricestf-discord/CI/development)](https://github.com/TF2Autobot/pricestf-discord/actions)
+[![GitHub issues](https://img.shields.io/github/issues/TF2Autobot/pricestf-discord)](https://github.com/TF2Autobot/pricestf-discord/issues)
+[![GitHub forks](https://img.shields.io/github/forks/TF2Autobot/pricestf-discord)](https://github.com/TF2Autobot/pricestf-discord/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/TF2Autobot/pricestf-discord)](https://github.com/TF2Autobot/pricestf-discord/stargazers)
 [![Discord](https://img.shields.io/discord/664971400678998016.svg)](https://discord.gg/D2GNnp7tv8)
-![License](https://img.shields.io/github/license/TF2Autobot/tf2autobot-prices-update)
+![License](https://img.shields.io/github/license/TF2Autobot/pricestf-discord)
 
 ## Installation
 
@@ -20,7 +20,7 @@
 3. Clone this repository:
     - Open command prompt, and run:
         - `cd Desktop`
-        - `git clone https://github.com/TF2Autobot/tf2autobot-prices-update.git --branch master`
+        - `git clone https://github.com/TF2Autobot/pricestf-discord.git --branch master`
 4. Install npm packages by double click on the `install.bat` file.
 5. Fill in `template.env` and rename it to `.env` (must have [view file extension enabled](https://www.howtogeek.com/205086/beginner-how-to-make-windows-show-file-extensions/)).
 6. Once ready, run the bot by double clicking `start.bat` file.
@@ -35,8 +35,8 @@ sudo apt-get install -y nodejs
 ```
 
 3. Install TypeScript: `sudo npm install typescript@latest -g`
-4. Clone the bot: `git clone https://github.com/TF2Autobot/tf2autobot-prices-update.git`
-5. Navigate to bot directory: `cd tf2autobot-prices-update`
+4. Clone the bot: `git clone https://github.com/TF2Autobot/pricestf-discord.git`
+5. Navigate to bot directory: `cd pricestf-discord`
 6. Install npm packages and compile TypeScript codes: `npm install && npm run build`
 7. Fill in `template.env` and rename it to `.env`
 8. Run the bot with `node dist/app.js`
