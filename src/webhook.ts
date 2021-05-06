@@ -89,13 +89,17 @@ export class Pricelist {
             const entry = prices[i];
 
             if (entry.buy === null) {
-                entry.buy.keys = 0;
-                entry.buy.metal = 0;
+                entry.buy = new Currencies({
+                    keys: 0,
+                    metal: 0
+                });
             }
 
             if (entry.sell === null) {
-                entry.sell.keys = 0;
-                entry.sell.metal = 0;
+                entry.sell = new Currencies({
+                    keys: 0,
+                    metal: 0
+                });
             }
 
             this.prices[entry.sku] = Entry.fromData(entry);
@@ -161,13 +165,17 @@ export class Pricelist {
 
         if (entry === undefined) {
             if (entry.buy === null) {
-                entry.buy.keys = 0;
-                entry.buy.metal = 0;
+                entry.buy = new Currencies({
+                    keys: 0,
+                    metal: 0
+                });
             }
 
             if (entry.sell === null) {
-                entry.sell.keys = 0;
-                entry.sell.metal = 0;
+                entry.sell = new Currencies({
+                    keys: 0,
+                    metal: 0
+                });
             }
 
             this.prices[data.sku] = Entry.fromData({
@@ -315,13 +323,17 @@ export class Pricelist {
 
             if (entry === undefined) {
                 if (entry.buy === null) {
-                    entry.buy.keys = 0;
-                    entry.buy.metal = 0;
+                    entry.buy = new Currencies({
+                        keys: 0,
+                        metal: 0
+                    });
                 }
-
+    
                 if (entry.sell === null) {
-                    entry.sell.keys = 0;
-                    entry.sell.metal = 0;
+                    entry.sell = new Currencies({
+                        keys: 0,
+                        metal: 0
+                    });
                 }
 
                 this.prices[data.sku] = Entry.fromData({
