@@ -7,43 +7,70 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import { sendWebhookKeyUpdate, sendWebHookPriceUpdateV2 } from './webhook';
+import { Pricelist } from './webhook';
 import SchemaManager from 'tf2-schema-2';
+import PricerApi, { GetItemPriceResponse } from './classes/Pricer';
 
 interface Currency {
     keys: number;
-    metal: number
+    metal: number;
 }
 
 interface Prices {
-    buy: Currency,
-    sell: Currency
+    buy: Currency;
+    sell: Currency;
 }
 
 const socketManger = new SocketManager('https://api.prices.tf');
 const schemaManager = new SchemaManager({ apiKey: process.env.STEAM_API_KEY });
-const datas: { sku: string, prices: Prices, time: number }[] = [];
+const pricer = new PricerApi();
+const datas: { sku: string; name: string; prices: Prices; time: number }[] = [];
 
-schemaManager.init(err => {
+schemaManager.init((err) => {
     if (err) {
         console.warn('Fail to get schema');
         process.exit(1);
     }
-    socketManger.init().then(() => {
-        socketManger.on('price', data => {
-            if (data.sku === '5021;6') {
-                sendWebhookKeyUpdate({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time }, schemaManager.schema);
-            }
 
-            datas.push({ sku: data.sku, prices: { buy: data.buy, sell: data.sell }, time: data.time });
+    const pricelist = new Pricelist(schemaManager.schema);
 
-            if (datas.length > 2) {
-                sendWebHookPriceUpdateV2(datas, schemaManager.schema);
-                datas.length = 0;
-            }
-        })
-    })
-})
+    console.log('Getting pricelist from prices.tf...');
+
+    pricer.getPricelist('bptf').then((pricestfPricelist) => {
+        pricelist.setPricelist(pricestfPricelist.items);
+
+        console.log('Initiating socket to prices.tf...');
+
+        socketManger.init().then(() => {
+            socketManger.on('price', (data: GetItemPriceResponse) => {
+                console.log('Data receieved for: ', { sku: data.sku });
+
+                if (data.sku === '5021;6') {
+                    pricelist.sendWebhookKeyUpdate({
+                        sku: data.sku,
+                        name: data.name,
+                        prices: { buy: data.buy, sell: data.sell },
+                        time: data.time,
+                    });
+                }
+
+                if (data.buy !== null) {
+                    datas.push({
+                        sku: data.sku,
+                        name: data.name,
+                        prices: { buy: data.buy, sell: data.sell },
+                        time: data.time,
+                    });
+
+                    if (datas.length > 2) {
+                        pricelist.sendWebHookPriceUpdateV2(datas);
+                        datas.length = 0;
+                    }
+                }
+            });
+        });
+    });
+});
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
@@ -55,18 +82,20 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
         console.error(
             [
                 'Price update bot' +
-                ' crashed! Please create an issue with the following log:',
-                `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${
-                    process.platform
-                } ${process.arch}}`,
+                    ' crashed! Please create an issue with the following log:',
+                `package.version: ${
+                    process.env.BOT_VERSION || undefined
+                }; node: ${process.version} ${process.platform} ${
+                    process.arch
+                }}`,
                 'Stack trace:',
-                inspect.inspect(origin)
+                inspect.inspect(origin),
             ].join('\r\n')
         );
     } else {
         console.warn('Received kill signal `' + (signalOrErr as string) + '`');
     }
 
-    socketManger.shutDown()
+    socketManger.shutDown();
     process.exit(1);
 });
