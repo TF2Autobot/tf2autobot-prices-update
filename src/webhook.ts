@@ -87,16 +87,25 @@ export class Pricelist {
         const count = prices.length;
         for (let i = 0; i < count; i++) {
             const entry = prices[i];
-            if (entry.buy !== null) {
-                this.prices[entry.sku] = Entry.fromData(entry);
 
-                if (entry.sku === '5021;6') {
-                    this.keyPrices = {
-                        buy: new Currencies(entry.buy),
-                        sell: new Currencies(entry.sell),
-                        time: entry.time,
-                    };
-                }
+            if (entry.buy === null) {
+                entry.buy.keys = 0;
+                entry.buy.metal = 0;
+            }
+
+            if (entry.sell === null) {
+                entry.sell.keys = 0;
+                entry.sell.metal = 0;
+            }
+
+            this.prices[entry.sku] = Entry.fromData(entry);
+
+            if (entry.sku === '5021;6') {
+                this.keyPrices = {
+                    buy: entry.buy,
+                    sell: entry.sell,
+                    time: entry.time,
+                };
             }
         }
     }
@@ -286,13 +295,31 @@ export class Pricelist {
 
             const keyPrice = this.keyPrice;
 
-            if (this.prices[data.sku] === undefined) {
-                this.prices[data.sku] = Entry.fromData(data);
+            const entry = this.prices[data.sku];
+
+            if (entry === undefined) {
+                if (entry.buy === null) {
+                    entry.buy.keys = 0;
+                    entry.buy.metal = 0;
+                }
+
+                if (entry.sell === null) {
+                    entry.sell.keys = 0;
+                    entry.sell.metal = 0;
+                }
+
+                this.prices[data.sku] = Entry.fromData({
+                    sku: data.sku,
+                    name: data.name,
+                    buy: data.prices.buy,
+                    sell: data.prices.sell,
+                    time: data.time,
+                });
             }
 
             const oldPrices = {
-                buy: this.prices[data.sku].buy,
-                sell: this.prices[data.sku].sell,
+                buy: entry.buy,
+                sell: entry.sell,
             };
 
             const oldBuyValue = oldPrices.buy.toValue(keyPrice);
@@ -457,7 +484,7 @@ export class Pricelist {
         this.keyPrices = {
             buy: new Currencies(data.prices.buy),
             sell: new Currencies(data.prices.sell),
-            time: data.time
+            time: data.time,
         };
 
         // send key price update to only key price update webhook.
