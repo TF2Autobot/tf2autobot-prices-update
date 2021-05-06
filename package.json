@@ -11,13 +11,17 @@
   "devDependencies": {
     "@types/death": "^1.1.1",
     "@types/node": "^15.0.2",
+    "@types/request": "^2.48.5",
     "@types/socket.io-client": "^1.4.34",
     "typescript": "^4.2.4"
   },
   "dependencies": {
     "death": "^1.1.0",
     "dotenv": "^9.0.0",
+    "request": "^2.88.2",
+    "request-retry-dayjs": "^1.0.1",
     "socket.io-client": "^2.3.1",
+    "tf2-currencies-2": "^1.2.5",
     "tf2-schema-2": "^1.6.5",
     "tf2-sku-2": "^1.1.1",
     "xmlhttprequest-ts": "^1.0.1"
