@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import { Pricelist } from './webhook';
+import { Pricelist, PriceUpdateQueue } from './webhook';
 import SchemaManager from 'tf2-schema-2';
 import PricerApi, { GetItemPriceResponse } from './classes/Pricer';
 
@@ -24,7 +24,10 @@ interface Prices {
 const socketManger = new SocketManager('https://api.prices.tf');
 const schemaManager = new SchemaManager({ apiKey: process.env.STEAM_API_KEY });
 const pricer = new PricerApi();
-const datas: { sku: string; name: string; prices: Prices; time: number }[] = [];
+// const datas: { sku: string; name: string; prices: Prices; time: number }[] = [];
+
+const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+PriceUpdateQueue.setURL(urls);
 
 schemaManager.init(err => {
     if (err) {
@@ -55,17 +58,24 @@ schemaManager.init(err => {
                 }
 
                 if (data.buy !== null) {
-                    datas.push({
+                    pricelist.sendWebHookPriceUpdateV1({
                         sku: data.sku,
                         name: data.name,
                         prices: { buy: data.buy, sell: data.sell },
                         time: data.time
                     });
 
-                    if (datas.length > 2) {
-                        pricelist.sendWebHookPriceUpdateV2(datas);
-                        datas.length = 0;
-                    }
+                    // datas.push({
+                    //     sku: data.sku,
+                    //     name: data.name,
+                    //     prices: { buy: data.buy, sell: data.sell },
+                    //     time: data.time
+                    // });
+
+                    // if (datas.length > 2) {
+                    //     pricelist.sendWebHookPriceUpdateV2(datas);
+                    //     datas.length = 0;
+                    // }
                 }
             });
         });

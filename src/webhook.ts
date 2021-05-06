@@ -155,6 +155,54 @@ export class Pricelist {
         const qualityItem = parts[1];
         const qualityColorPrint = qualityColor()[qualityItem];
 
+        const keyPrice = this.keyPrice;
+
+        const entry = this.prices[data.sku];
+
+        if (entry === undefined) {
+            if (entry.buy === null) {
+                entry.buy.keys = 0;
+                entry.buy.metal = 0;
+            }
+
+            if (entry.sell === null) {
+                entry.sell.keys = 0;
+                entry.sell.metal = 0;
+            }
+
+            this.prices[data.sku] = Entry.fromData({
+                sku: data.sku,
+                name: data.name,
+                buy: data.prices.buy,
+                sell: data.prices.sell,
+                time: data.time
+            });
+        }
+
+        const oldPrices = {
+            buy: entry.buy,
+            sell: entry.sell
+        };
+
+        const oldBuyValue = oldPrices.buy.toValue(keyPrice);
+        const oldSellValue = oldPrices.sell.toValue(keyPrice);
+
+        const newPrices = {
+            buy: new Currencies(data.prices.buy),
+            sell: new Currencies(data.prices.sell)
+        };
+
+        const newBuyValue = newPrices.buy.toValue(keyPrice);
+        const newSellValue = newPrices.sell.toValue(keyPrice);
+
+        this.prices[data.sku].buy = newPrices.buy;
+        this.prices[data.sku].sell = newPrices.sell;
+
+        const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
+        const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
+        const sellChangesValue = Math.round(newSellValue - oldSellValue);
+        const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
+
         const priceUpdate: Webhook = {
             username: process.env.DISPLAY_NAME,
             avatar_url: process.env.AVATAR_URL,
@@ -183,17 +231,19 @@ export class Pricelist {
                     fields: [
                         {
                             name: 'Buying for',
-                            value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, ` : ''}${
-                                data.prices.buy.metal
-                            } ref`,
-                            inline: true
+                            value: `${oldPrices.buy.toString()} → ${newPrices.buy.toString()} (${
+                                buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
+                            })`
                         },
                         {
                             name: 'Selling for',
-                            value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, ` : ''}${
-                                data.prices.sell.metal
-                            } ref`,
-                            inline: true
+                            value: `${oldPrices.sell.toString()} → ${newPrices.sell.toString()} (${
+                                sellChangesValue > 0
+                                    ? `+${sellChanges}`
+                                    : sellChangesValue === 0
+                                    ? `0 ref`
+                                    : sellChanges
+                            })`
                         }
                     ],
                     description: process.env.NOTE,
@@ -202,17 +252,7 @@ export class Pricelist {
             ]
         };
 
-        const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
-
-        urls.forEach((url, i) => {
-            sendWebhook(url, priceUpdate)
-                .then(() => {
-                    console.debug(`Sent ${data.sku} update to Discord (${i})`);
-                })
-                .catch(err => {
-                    console.debug(`❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `, err);
-                });
-        });
+        PriceUpdateQueue.enqueue(data.sku, priceUpdate);
     }
 
     sendWebHookPriceUpdateV2(data: { sku: string; name: string; prices: Prices; time: number }[]): void {
@@ -634,6 +674,68 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
         request.setRequestHeader('Content-type', 'application/json');
         request.send(JSON.stringify(webhook));
     });
+}
+
+import { UnknownDictionary } from './types/common';
+import sleepasync from 'sleep-async';
+
+export class PriceUpdateQueue {
+    private static priceUpdate: UnknownDictionary<Webhook> = {};
+
+    private static url: string[];
+
+    static setURL(url: string[]) {
+        this.url = url;
+    }
+
+    private static isProcessing = false;
+
+    static enqueue(sku: string, webhook: Webhook): void {
+        this.priceUpdate[sku] = webhook;
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        delete this.priceUpdate[this.first()];
+    }
+
+    private static first(): string {
+        return Object.keys(this.priceUpdate)[0];
+    }
+
+    private static size(): number {
+        return Object.keys(this.priceUpdate).length;
+    }
+
+    private static async process(): Promise<void> {
+        const sku = this.first();
+
+        if (sku === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.size() > 5) {
+            await sleepasync().Promise.sleep(500);
+        }
+
+        this.url.forEach((url, i) => {
+            sendWebhook(url, this.priceUpdate[sku])
+                .then(() => {
+                    console.log(`Sent ${sku} update to Discord (${i}).`);
+                })
+                .catch(err => {
+                    console.log(`❌ Failed to send ${sku} price update webhook to Discord (${i}): `, err);
+                })
+                .finally(() => {
+                    this.isProcessing = false;
+                    this.dequeue();
+                    void this.process();
+                });
+        });
+    }
 }
 
 interface Author {
