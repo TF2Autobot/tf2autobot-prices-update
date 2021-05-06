@@ -51,7 +51,7 @@ export class Entry implements EntryData {
             name: this.name,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
-            time: this.time,
+            time: this.time
         };
     }
 }
@@ -87,31 +87,33 @@ export class Pricelist {
         const count = prices.length;
         for (let i = 0; i < count; i++) {
             const entry = prices[i];
-            if (entry.buy !== null) {
-                this.prices[entry.sku] = Entry.fromData(entry);
 
-                if (entry.sku === '5021;6') {
-                    this.keyPrices = {
-                        buy: new Currencies(entry.buy),
-                        sell: new Currencies(entry.sell),
-                        time: entry.time,
-                    };
-                }
+            if (entry.buy === null) {
+                entry.buy.keys = 0;
+                entry.buy.metal = 0;
+            }
+
+            if (entry.sell === null) {
+                entry.sell.keys = 0;
+                entry.sell.metal = 0;
+            }
+
+            this.prices[entry.sku] = Entry.fromData(entry);
+
+            if (entry.sku === '5021;6') {
+                this.keyPrices = {
+                    buy: entry.buy,
+                    sell: entry.sell,
+                    time: entry.time
+                };
             }
         }
     }
 
-    sendWebHookPriceUpdateV1(data: {
-        sku: string;
-        name: string;
-        prices: Prices;
-        time: number;
-    }): void {
+    sendWebHookPriceUpdateV1(data: { sku: string; name: string; prices: Prices; time: number }): void {
         const parts = data.sku.split(';');
         const newItem = SKU.fromString(`${parts[0]};6`);
-        const itemImageUrl = this.schema.getItemByItemName(
-            this.schema.getName(newItem, false)
-        );
+        const itemImageUrl = this.schema.getItemByItemName(this.schema.getName(newItem, false));
 
         let itemImageUrlPrint: string;
         const item = SKU.fromString(data.sku);
@@ -119,8 +121,7 @@ export class Pricelist {
         const paintCan = paintCanImages();
 
         if (!itemImageUrl || !item) {
-            itemImageUrlPrint =
-                'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
         } else if (Object.keys(paintCan).includes(`${parts[0]};6`)) {
             itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
                 paintCan[`${parts[0]};6`]
@@ -136,9 +137,7 @@ export class Pricelist {
         } else if (item.paintkit !== null) {
             itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
                 this.schema.getName(newItem, false)
-            )}_${item.paintkit}_${item.wear}_${
-                item.festive === true ? 1 : 0
-            }.png`;
+            )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
         } else {
             itemImageUrlPrint = itemImageUrl.image_url_large;
         }
@@ -151,11 +150,58 @@ export class Pricelist {
         let effectURL: string;
         if (!effectsId) {
             effectURL = '';
-        } else
-            effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+        } else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
 
         const qualityItem = parts[1];
         const qualityColorPrint = qualityColor()[qualityItem];
+
+        const keyPrice = this.keyPrice;
+
+        const entry = this.prices[data.sku];
+
+        if (entry === undefined) {
+            if (entry.buy === null) {
+                entry.buy.keys = 0;
+                entry.buy.metal = 0;
+            }
+
+            if (entry.sell === null) {
+                entry.sell.keys = 0;
+                entry.sell.metal = 0;
+            }
+
+            this.prices[data.sku] = Entry.fromData({
+                sku: data.sku,
+                name: data.name,
+                buy: data.prices.buy,
+                sell: data.prices.sell,
+                time: data.time
+            });
+        }
+
+        const oldPrices = {
+            buy: entry.buy,
+            sell: entry.sell
+        };
+
+        const oldBuyValue = oldPrices.buy.toValue(keyPrice);
+        const oldSellValue = oldPrices.sell.toValue(keyPrice);
+
+        const newPrices = {
+            buy: new Currencies(data.prices.buy),
+            sell: new Currencies(data.prices.sell)
+        };
+
+        const newBuyValue = newPrices.buy.toValue(keyPrice);
+        const newSellValue = newPrices.sell.toValue(keyPrice);
+
+        this.prices[data.sku].buy = newPrices.buy;
+        this.prices[data.sku].sell = newPrices.sell;
+
+        const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
+        const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
+        const sellChangesValue = Math.round(newSellValue - oldSellValue);
+        const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
         const priceUpdate: Webhook = {
             username: process.env.DISPLAY_NAME,
@@ -167,72 +213,54 @@ export class Pricelist {
                         name: data.name,
                         url: `https://www.prices.tf/items/${data.sku}`,
                         icon_url:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg',
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                     },
                     footer: {
-                        text: `${data.sku} • ${String(
-                            new Date(data.time * 1000)
-                        ).replace('Coordinated Universal Time', 'UTC')} • v${
-                            process.env.BOT_VERSION
-                        }`,
+                        text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
+                            'Coordinated Universal Time',
+                            'UTC'
+                        )} • v${process.env.BOT_VERSION}`
                     },
                     thumbnail: {
-                        url: itemImageUrlPrint,
+                        url: itemImageUrlPrint
                     },
                     image: {
-                        url: effectURL,
+                        url: effectURL
                     },
                     title: '',
                     fields: [
                         {
                             name: 'Buying for',
-                            value: `${
-                                data.prices.buy.keys > 0
-                                    ? `${data.prices.buy.keys} keys, `
-                                    : ''
-                            }${data.prices.buy.metal} ref`,
-                            inline: true,
+                            value: `${oldPrices.buy.toString()} → ${newPrices.buy.toString()} (${
+                                buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
+                            })`
                         },
                         {
                             name: 'Selling for',
-                            value: `${
-                                data.prices.sell.keys > 0
-                                    ? `${data.prices.sell.keys} keys, `
-                                    : ''
-                            }${data.prices.sell.metal} ref`,
-                            inline: true,
-                        },
+                            value: `${oldPrices.sell.toString()} → ${newPrices.sell.toString()} (${
+                                sellChangesValue > 0
+                                    ? `+${sellChanges}`
+                                    : sellChangesValue === 0
+                                    ? `0 ref`
+                                    : sellChanges
+                            })`
+                        }
                     ],
                     description: process.env.NOTE,
-                    color: qualityColorPrint,
-                },
-            ],
+                    color: qualityColorPrint
+                }
+            ]
         };
 
-        const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
-
-        urls.forEach((url, i) => {
-            sendWebhook(url, priceUpdate)
-                .then(() => {
-                    console.debug(`Sent ${data.sku} update to Discord (${i})`);
-                })
-                .catch((err) => {
-                    console.debug(
-                        `❌ Failed to send ${data.sku} price update webhook to Discord (${i}): `,
-                        err
-                    );
-                });
-        });
+        PriceUpdateQueue.enqueue(data.sku, priceUpdate);
     }
 
-    sendWebHookPriceUpdateV2(
-        data: { sku: string; name: string; prices: Prices; time: number }[]
-    ): void {
+    sendWebHookPriceUpdateV2(data: { sku: string; name: string; prices: Prices; time: number }[]): void {
         const embed: Embeds[] = [];
 
         const paintCan = paintCanImages();
 
-        data.forEach((data) => {
+        data.forEach(data => {
             const parts = data.sku.split(';');
             const newSku = parts[0] + ';6';
             const newItem = SKU.fromString(newSku);
@@ -244,9 +272,11 @@ export class Pricelist {
 
             const item = SKU.fromString(data.sku);
 
-            if (!itemImageUrl || !item) {
+            if (item.defindex === 266) {
                 itemImageUrlPrint =
-                    'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+                    'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
+            } else if (!itemImageUrl || !item) {
+                itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
             } else if (Object.keys(paintCan).includes(newSku)) {
                 itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCan[newSku]}512fx512f`;
             } else if (item.australium === true) {
@@ -254,15 +284,10 @@ export class Pricelist {
                 itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${
                     australiumImages()[australiumSKU]
                 }512fx512f`;
-            } else if (item.defindex === 266) {
-                itemImageUrlPrint =
-                    'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
             } else if (item.paintkit !== null) {
-                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
-                    newName
-                )}_${item.paintkit}_${item.wear}_${
-                    item.festive === true ? 1 : 0
-                }.png`;
+                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
+                    item.paintkit
+                }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
             } else {
                 itemImageUrlPrint = itemImageUrl.image_url_large;
             }
@@ -286,13 +311,31 @@ export class Pricelist {
 
             const keyPrice = this.keyPrice;
 
-            if (this.prices[data.sku] === undefined) {
-                this.prices[data.sku] = Entry.fromData(data);
+            const entry = this.prices[data.sku];
+
+            if (entry === undefined) {
+                if (entry.buy === null) {
+                    entry.buy.keys = 0;
+                    entry.buy.metal = 0;
+                }
+
+                if (entry.sell === null) {
+                    entry.sell.keys = 0;
+                    entry.sell.metal = 0;
+                }
+
+                this.prices[data.sku] = Entry.fromData({
+                    sku: data.sku,
+                    name: data.name,
+                    buy: data.prices.buy,
+                    sell: data.prices.sell,
+                    time: data.time
+                });
             }
 
             const oldPrices = {
-                buy: this.prices[data.sku].buy,
-                sell: this.prices[data.sku].sell,
+                buy: entry.buy,
+                sell: entry.sell
             };
 
             const oldBuyValue = oldPrices.buy.toValue(keyPrice);
@@ -300,7 +343,7 @@ export class Pricelist {
 
             const newPrices = {
                 buy: new Currencies(data.prices.buy),
-                sell: new Currencies(data.prices.sell),
+                sell: new Currencies(data.prices.sell)
             };
 
             const newBuyValue = newPrices.buy.toValue(keyPrice);
@@ -310,59 +353,46 @@ export class Pricelist {
             this.prices[data.sku].sell = newPrices.sell;
 
             const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
-            const buyChanges = Currencies.toCurrencies(
-                buyChangesValue
-            ).toString();
+            const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
             const sellChangesValue = Math.round(newSellValue - oldSellValue);
-            const sellChanges = Currencies.toCurrencies(
-                sellChangesValue
-            ).toString();
+            const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
             embed.push({
                 author: {
                     name: data.name,
                     url: `https://www.prices.tf/items/${data.sku}`,
                     icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg',
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `${data.sku} • ${String(
-                        new Date(data.time * 1000)
-                    ).replace('Coordinated Universal Time', 'UTC')} • v${
-                        process.env.BOT_VERSION
-                    }`,
+                    text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
+                        'Coordinated Universal Time',
+                        'UTC'
+                    )} • v${process.env.BOT_VERSION}`
                 },
                 thumbnail: {
-                    url: itemImageUrlPrint,
+                    url: itemImageUrlPrint
                 },
                 image: {
-                    url: effectURL,
+                    url: effectURL
                 },
                 title: '',
                 fields: [
                     {
                         name: 'Buying for',
                         value: `${oldPrices.buy.toString()} → ${newPrices.buy.toString()} (${
-                            buyChangesValue > 0
-                                ? `+${buyChanges}`
-                                : buyChangesValue === 0
-                                ? `0 ref`
-                                : buyChanges
-                        })`,
+                            buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
+                        })`
                     },
                     {
                         name: 'Selling for',
                         value: `${oldPrices.sell.toString()} → ${newPrices.sell.toString()} (${
-                            sellChangesValue > 0
-                                ? `+${sellChanges}`
-                                : sellChangesValue === 0
-                                ? `0 ref`
-                                : sellChanges
-                        })`,
-                    },
+                            sellChangesValue > 0 ? `+${sellChanges}` : sellChangesValue === 0 ? `0 ref` : sellChanges
+                        })`
+                    }
                 ],
                 description: process.env.NOTE,
-                color: qualityColorPrint,
+                color: qualityColorPrint
             });
         });
 
@@ -370,40 +400,26 @@ export class Pricelist {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: '',
-            embeds: embed,
+            embeds: embed
         };
 
-        const skus = data.map((d) => d.sku);
+        const skus = data.map(d => d.sku);
 
         const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
 
         urls.forEach((url, i) => {
             sendWebhook(url, priceUpdate)
                 .then(() => {
-                    console.debug(
-                        `Sent ${skus.join(', ')} update to Discord (${i})`
-                    );
+                    console.debug(`Sent ${skus.join(', ')} update to Discord (${i})`);
                 })
-                .catch((err) => {
-                    console.debug(
-                        `❌ Failed to send ${skus.join(
-                            ', '
-                        )} price update webhook to Discord (${i}): `,
-                        err
-                    );
+                .catch(err => {
+                    console.debug(`❌ Failed to send ${skus.join(', ')} price update webhook to Discord (${i}): `, err);
                 });
         });
     }
 
-    sendWebhookKeyUpdate(data: {
-        sku: string;
-        name: string;
-        prices: Prices;
-        time: number;
-    }): void {
-        const itemImageUrl = this.schema.getItemByItemName(
-            'Mann Co. Supply Crate Key'
-        );
+    sendWebhookKeyUpdate(data: { sku: string; name: string; prices: Prices; time: number }): void {
+        const itemImageUrl = this.schema.getItemByItemName('Mann Co. Supply Crate Key');
 
         const priceUpdate: Webhook = {
             username: process.env.DISPLAY_NAME,
@@ -415,43 +431,38 @@ export class Pricelist {
                         name: data.name,
                         url: `https://www.prices.tf/items/${data.sku}`,
                         icon_url:
-                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg',
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                     },
                     footer: {
-                        text: `${data.sku} • ${String(
-                            new Date(data.time * 1000)
-                        ).replace('Coordinated Universal Time', 'UTC')} • v${
-                            process.env.BOT_VERSION
-                        }`,
+                        text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
+                            'Coordinated Universal Time',
+                            'UTC'
+                        )} • v${process.env.BOT_VERSION}`
                     },
                     thumbnail: {
-                        url: itemImageUrl.image_url_large,
+                        url: itemImageUrl.image_url_large
                     },
                     title: '',
                     fields: [
                         {
                             name: 'Buying for',
-                            value: `${
-                                data.prices.buy.keys > 0
-                                    ? `${data.prices.buy.keys} keys, `
-                                    : ''
-                            }${data.prices.buy.metal} ref`,
-                            inline: true,
+                            value: `${data.prices.buy.keys > 0 ? `${data.prices.buy.keys} keys, ` : ''}${
+                                data.prices.buy.metal
+                            } ref`,
+                            inline: true
                         },
                         {
                             name: 'Selling for',
-                            value: `${
-                                data.prices.sell.keys > 0
-                                    ? `${data.prices.sell.keys} keys, `
-                                    : ''
-                            }${data.prices.sell.metal} ref`,
-                            inline: true,
-                        },
+                            value: `${data.prices.sell.keys > 0 ? `${data.prices.sell.keys} keys, ` : ''}${
+                                data.prices.sell.metal
+                            } ref`,
+                            inline: true
+                        }
                     ],
                     description: process.env.NOTE,
-                    color: '16766720',
-                },
-            ],
+                    color: '16766720'
+                }
+            ]
         };
 
         this.keyPrices = {
@@ -465,11 +476,8 @@ export class Pricelist {
             .then(() => {
                 console.debug(`Sent key prices update to Discord`);
             })
-            .catch((err) => {
-                console.debug(
-                    `❌ Failed to send key prices update webhook to Discord: `,
-                    err
-                );
+            .catch(err => {
+                console.debug(`❌ Failed to send key prices update webhook to Discord: `, err);
             });
     }
 }
@@ -535,7 +543,7 @@ function australiumImages(): { [key: string]: string } {
             'cUwwfVB3nhz9MhMzZAfOeD-VOyIJs55YAjDA8wAd6NrHnMm4xcFKSU_ZcCPQ49QzoXXQ0vcUxAYDu8vUWJ1teRmVbCw/',
         // Australium Wrench
         '197;11;australium':
-            'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/',
+            'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
     };
 }
 
@@ -627,7 +635,7 @@ function paintCanImages(): { [key: string]: string } {
             'TeKvZLFJtnqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvmeRW1Z8/',
         // Zepheniah's Greed
         '5028;6':
-            'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/',
+            'Tde_ROEs5nqWSMU5PShIcCxWVd2H5fLn-siSQrbOhrZcLFzwvo7vKMFXrjazbKEC3YDlltU7ILYTmKrTT3t-mdE2nBQewrRwpRKfEHoGxPOM3aPhM8045d-zTgwxczDhgvPiWjbeE/'
     };
 }
 
@@ -644,7 +652,7 @@ function qualityColor(): { [key: string]: string } {
         '11': '13593138', //Strange - #CF6A32
         '13': '3732395', //Haunted - #38F3AB
         '14': '11141120', //Collector's - #AA0000
-        '15': '16711422', // Decorated Weapon
+        '15': '16711422' // Decorated Weapon
     };
 }
 
@@ -666,6 +674,68 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
         request.setRequestHeader('Content-type', 'application/json');
         request.send(JSON.stringify(webhook));
     });
+}
+
+import { UnknownDictionary } from './types/common';
+import sleepasync from 'sleep-async';
+
+export class PriceUpdateQueue {
+    private static priceUpdate: UnknownDictionary<Webhook> = {};
+
+    private static url: string[];
+
+    static setURL(url: string[]) {
+        this.url = url;
+    }
+
+    private static isProcessing = false;
+
+    static enqueue(sku: string, webhook: Webhook): void {
+        this.priceUpdate[sku] = webhook;
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        delete this.priceUpdate[this.first()];
+    }
+
+    private static first(): string {
+        return Object.keys(this.priceUpdate)[0];
+    }
+
+    private static size(): number {
+        return Object.keys(this.priceUpdate).length;
+    }
+
+    private static async process(): Promise<void> {
+        const sku = this.first();
+
+        if (sku === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.size() > 5) {
+            await sleepasync().Promise.sleep(500);
+        }
+
+        this.url.forEach((url, i) => {
+            sendWebhook(url, this.priceUpdate[sku])
+                .then(() => {
+                    console.log(`Sent ${sku} update to Discord (${i}).`);
+                })
+                .catch(err => {
+                    console.log(`❌ Failed to send ${sku} price update webhook to Discord (${i}): `, err);
+                })
+                .finally(() => {
+                    this.isProcessing = false;
+                    this.dequeue();
+                    void this.process();
+                });
+        });
+    }
 }
 
 interface Author {

@@ -15,20 +15,16 @@ import request from 'request-retry-dayjs';
 export default class PricerApi implements Pricer {
     public constructor(public url?: string, public apiToken?: string) {}
 
-    private apiRequest<I, R extends PricesResponse>(
-        httpMethod: string,
-        path: string,
-        input: I
-    ): Promise<R> {
+    private apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
         const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
             method: httpMethod,
             url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
             headers: {
-                'User-Agent': 'pricestf-discord@' + process.env.BOT_VERSION,
+                'User-Agent': 'pricestf-discord@' + process.env.BOT_VERSION
             },
             json: true,
             gzip: true,
-            timeout: 30000,
+            timeout: 30000
         };
 
         if (this.apiToken) {

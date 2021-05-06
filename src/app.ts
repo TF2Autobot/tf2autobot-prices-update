@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import { Pricelist } from './webhook';
+import { Pricelist, PriceUpdateQueue } from './webhook';
 import SchemaManager from 'tf2-schema-2';
 import PricerApi, { GetItemPriceResponse } from './classes/Pricer';
 
@@ -24,9 +24,12 @@ interface Prices {
 const socketManger = new SocketManager('https://api.prices.tf');
 const schemaManager = new SchemaManager({ apiKey: process.env.STEAM_API_KEY });
 const pricer = new PricerApi();
-const datas: { sku: string; name: string; prices: Prices; time: number }[] = [];
+// const datas: { sku: string; name: string; prices: Prices; time: number }[] = [];
 
-schemaManager.init((err) => {
+const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+PriceUpdateQueue.setURL(urls);
+
+schemaManager.init(err => {
     if (err) {
         console.warn('Fail to get schema');
         process.exit(1);
@@ -36,7 +39,7 @@ schemaManager.init((err) => {
 
     console.log('Getting pricelist from prices.tf...');
 
-    pricer.getPricelist('bptf').then((pricestfPricelist) => {
+    pricer.getPricelist('bptf').then(pricestfPricelist => {
         pricelist.setPricelist(pricestfPricelist.items);
 
         console.log('Initiating socket to prices.tf...');
@@ -50,22 +53,29 @@ schemaManager.init((err) => {
                         sku: data.sku,
                         name: data.name,
                         prices: { buy: data.buy, sell: data.sell },
-                        time: data.time,
+                        time: data.time
                     });
                 }
 
                 if (data.buy !== null) {
-                    datas.push({
+                    pricelist.sendWebHookPriceUpdateV1({
                         sku: data.sku,
                         name: data.name,
                         prices: { buy: data.buy, sell: data.sell },
-                        time: data.time,
+                        time: data.time
                     });
 
-                    if (datas.length > 2) {
-                        pricelist.sendWebHookPriceUpdateV2(datas);
-                        datas.length = 0;
-                    }
+                    // datas.push({
+                    //     sku: data.sku,
+                    //     name: data.name,
+                    //     prices: { buy: data.buy, sell: data.sell },
+                    //     time: data.time
+                    // });
+
+                    // if (datas.length > 2) {
+                    //     pricelist.sendWebHookPriceUpdateV2(datas);
+                    //     datas.length = 0;
+                    // }
                 }
             });
         });
@@ -81,15 +91,12 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     if (crashed) {
         console.error(
             [
-                'Price update bot' +
-                    ' crashed! Please create an issue with the following log:',
-                `package.version: ${
-                    process.env.BOT_VERSION || undefined
-                }; node: ${process.version} ${process.platform} ${
-                    process.arch
-                }}`,
+                'Price update bot' + ' crashed! Please create an issue with the following log:',
+                `package.version: ${process.env.BOT_VERSION || undefined}; node: ${process.version} ${
+                    process.platform
+                } ${process.arch}}`,
                 'Stack trace:',
-                inspect.inspect(origin),
+                inspect.inspect(origin)
             ].join('\r\n')
         );
     } else {
