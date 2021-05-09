@@ -161,30 +161,30 @@ export class Pricelist {
 
         const keyPrice = this.keyPrice;
 
-        const entry = this.prices[data.sku];
+        let entry = this.prices[data.sku];
 
         if (entry === undefined) {
-            if (entry.buy === null) {
-                entry.buy = new Currencies({
-                    keys: 0,
-                    metal: 0
-                });
-            }
-
-            if (entry.sell === null) {
-                entry.sell = new Currencies({
-                    keys: 0,
-                    metal: 0
-                });
-            }
-
             this.prices[data.sku] = Entry.fromData({
                 sku: data.sku,
                 name: data.name,
-                buy: data.prices.buy,
-                sell: data.prices.sell,
+                buy:
+                    data.prices.buy === null
+                        ? new Currencies({
+                              keys: 0,
+                              metal: 0
+                          })
+                        : data.prices.buy,
+                sell:
+                    data.prices.sell === null
+                        ? new Currencies({
+                              keys: 0,
+                              metal: 0
+                          })
+                        : data.prices.sell,
                 time: data.time
             });
+
+            entry = this.prices[data.sku];
         }
 
         const oldPrices = {
@@ -319,30 +319,30 @@ export class Pricelist {
 
             const keyPrice = this.keyPrice;
 
-            const entry = this.prices[data.sku];
+            let entry = this.prices[data.sku];
 
             if (entry === undefined) {
-                if (entry.buy === null) {
-                    entry.buy = new Currencies({
-                        keys: 0,
-                        metal: 0
-                    });
-                }
-    
-                if (entry.sell === null) {
-                    entry.sell = new Currencies({
-                        keys: 0,
-                        metal: 0
-                    });
-                }
-
                 this.prices[data.sku] = Entry.fromData({
                     sku: data.sku,
                     name: data.name,
-                    buy: data.prices.buy,
-                    sell: data.prices.sell,
+                    buy:
+                        data.prices.buy === null
+                            ? new Currencies({
+                                  keys: 0,
+                                  metal: 0
+                              })
+                            : data.prices.buy,
+                    sell:
+                        data.prices.sell === null
+                            ? new Currencies({
+                                  keys: 0,
+                                  metal: 0
+                              })
+                            : data.prices.sell,
                     time: data.time
                 });
+
+                entry = this.prices[data.sku];
             }
 
             const oldPrices = {
