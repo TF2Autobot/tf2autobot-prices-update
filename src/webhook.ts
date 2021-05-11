@@ -2439,9 +2439,7 @@ export class PriceUpdateQueue {
 
         this.isProcessing = true;
 
-        if (this.size() > 5) {
-            await sleepasync().Promise.sleep(500);
-        }
+        await sleepasync().Promise.sleep(1000);
 
         this.url.forEach((url, i) => {
             sendWebhook(url, this.priceUpdate[sku])
