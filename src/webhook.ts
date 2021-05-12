@@ -2505,6 +2505,18 @@ export class Pricelist {
                 if (!itemImageUrlPrint) {
                     itemImageUrlPrint = itemImageUrl.image_url_large;
                 }
+            } else if (data.name.includes('Strangifier') && !data.name.includes('Chemistry Set')) {
+                const front =
+                    'https://community.cloudflare.steamstatic.com/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0du1AHE66AL6lNU5Fw_2yIWtaMjIpQmjAT';
+                const url = strangifierImages[data.sku];
+    
+                if (url) {
+                    itemImageUrlPrint = `${front}${url}/520fx520f`;
+                }
+    
+                if (!itemImageUrlPrint) {
+                    itemImageUrlPrint = itemImageUrl.image_url_large;
+                }
             } else if (Object.keys(paintCanImages).includes(newSku)) {
                 itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${paintCanImages[newSku]}512fx512f`;
             } else if (item.australium === true) {
