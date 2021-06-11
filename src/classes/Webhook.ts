@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies-2';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { Item } from './classes/Pricer';
+import { Item } from './Pricer';
 
 interface Currency {
     keys: number;
@@ -2746,7 +2746,7 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
     });
 }
 
-import { UnknownDictionary } from './types/common';
+import { UnknownDictionary } from '../types/common';
 import sleepasync from 'sleep-async';
 
 export class PriceUpdateQueue {
