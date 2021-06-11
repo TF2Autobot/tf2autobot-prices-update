@@ -7,9 +7,9 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import SocketManager from './classes/SocketManager';
-import { Pricelist, PriceUpdateQueue } from './webhook';
+import { Pricelist, PriceUpdateQueue } from './classes/Webhook';
 import SchemaManager from 'tf2-schema-2';
-import PricerApi, { GetItemPriceResponse } from './classes/Pricer';
+import PricerApi, { GetItemPriceResponse, Pricer } from './classes/Pricer';
 
 interface Currency {
     keys: number;
@@ -36,6 +36,7 @@ schemaManager.init(err => {
     }
 
     const pricelist = new Pricelist(schemaManager.schema);
+    const pricecheck = new Pricecheck(pricer);
 
     console.log('Getting pricelist from prices.tf...');
 
@@ -78,12 +79,47 @@ schemaManager.init(err => {
                     // }
                 }
             });
+
+            console.log('Getting overall items from prices.tf...');
+
+            pricer
+                .getOverall()
+                .then(overall => {
+                    pricecheck.setSkusToCheck(overall);
+                    pricecheck.startPriceCheck();
+                })
+                .catch(err => {
+                    console.error('Failed to get overall items from prices.tf', err);
+                    console.log('Retrying in 10 minutes...');
+
+                    setTimeout(() => {
+                        retryGetOverall(pricer, pricecheck);
+                    }, 10 * 60 * 1000);
+                });
         });
     });
 });
 
+function retryGetOverall(pricer: Pricer, pricecheck: Pricecheck) {
+    pricer
+        .getOverall()
+        .then(overall => {
+            pricecheck.setSkusToCheck(overall);
+            pricecheck.startPriceCheck();
+        })
+        .catch(err => {
+            console.error('Failed to get overall items from prices.tf', err);
+            console.log('Retrying in 10 minutes...');
+
+            setTimeout(() => {
+                retryGetOverall(pricer, pricecheck);
+            }, 10 * 60 * 1000);
+        });
+}
+
 import ON_DEATH from 'death';
 import * as inspect from 'util';
+import { Pricecheck } from './classes/Pricecheck';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = signalOrErr !== 'SIGINT';

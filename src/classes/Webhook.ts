@@ -2,7 +2,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies-2';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { Item } from './classes/Pricer';
+import { Item } from './Pricer';
 
 interface Currency {
     keys: number;
@@ -2215,7 +2215,10 @@ const strangifierImages: { [sku: string]: string } = {
         '22xZMnCojCBSaeR7B8fH0gL-77qLTi2iOWKQLSLcTlg_SLReMDnR-TOj4--UQWzMFbt6RFpSf6EBoGxXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq7OKH7iUQ',
     // Mustachioed Mann
     '6522;6;td-30352':
-        '22xZMnCojCBSaPB_LMrFyAz0pOayEXX5ZgjILjPeGRA_SrcMM2_fq2X34-qcQjnIFb19RwwCL6oH9GNIbsiKPkc81YUIrze82VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75PnqvzY_ms'
+        '22xZMnCojCBSaPB_LMrFyAz0pOayEXX5ZgjILjPeGRA_SrcMM2_fq2X34-qcQjnIFb19RwwCL6oH9GNIbsiKPkc81YUIrze82VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75PnqvzY_ms',
+    // Spine-Tingling Skull
+    '6522;6;td-578':
+        '22VDJi7H1Xt_a_ZTOvTKwRf8pKzbHnf0aTOVLniNSAc8RLMPZG6K-mXw4-zAEWyfFespEFtQeaEGoGAcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOs5jNmRs'
 };
 
 const qualityColor: { [key: string]: string } = {
@@ -2508,11 +2511,11 @@ export class Pricelist {
                 const front =
                     'https://community.cloudflare.steamstatic.com/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0du1AHE66AL6lNU5Fw_2yIWtaMjIpQmjAT';
                 const url = strangifierImages[data.sku];
-    
+
                 if (url) {
                     itemImageUrlPrint = `${front}${url}/520fx520f`;
                 }
-    
+
                 if (!itemImageUrlPrint) {
                     itemImageUrlPrint = itemImageUrl.image_url_large;
                 }
@@ -2732,7 +2735,7 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
                 if (request.status === 204) {
                     resolve();
                 } else {
-                    reject(request.responseText);
+                    reject({ text: request.responseText, webhook });
                 }
             }
         };
@@ -2743,7 +2746,7 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
     });
 }
 
-import { UnknownDictionary } from './types/common';
+import { UnknownDictionary } from '../types/common';
 import sleepasync from 'sleep-async';
 
 export class PriceUpdateQueue {

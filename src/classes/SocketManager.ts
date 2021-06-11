@@ -1,7 +1,7 @@
-import io from 'socket.io-client';
+import io from '@tf2autobot/socket.io-client';
 
 export default class SocketManager {
-    private socket: SocketIOClient.Socket;
+    private socket: any;
 
     constructor(public url: string, public key?: string) {}
 
