@@ -2735,7 +2735,7 @@ function sendWebhook(url: string, webhook: Webhook): Promise<void> {
                 if (request.status === 204) {
                     resolve();
                 } else {
-                    reject(request.responseText);
+                    reject({ text: request.responseText, webhook });
                 }
             }
         };
