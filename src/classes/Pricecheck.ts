@@ -43,7 +43,7 @@ export class Pricecheck {
                 this.submitted++;
                 this.success++;
                 console.log(
-                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
+                    `pc ${this.sku} ✅ | ${this.submitted}/${this.total} (${this.success} ✅ | ${this.failed} ❌) - ${this.remaining} left`
                 );
             })
             .catch(err => {
@@ -53,7 +53,7 @@ export class Pricecheck {
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                 console.log(`pricecheck failed for ${this.sku}: ${errMessage}`);
                 console.log(
-                    `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
+                    `pc ${this.sku} ❌ | ${this.submitted}/${this.total} (${this.success} ✅ | ${this.failed} ❌) - ${this.remaining} left`
                 );
             })
             .finally(() => {
