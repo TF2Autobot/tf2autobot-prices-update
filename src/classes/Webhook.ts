@@ -2798,9 +2798,12 @@ export class PriceUpdateQueue {
                     console.log(`❌ Failed to send ${sku} price update webhook to Discord (${i}): `, err);
                 })
                 .finally(() => {
-                    this.isProcessing = false;
-                    this.dequeue();
-                    void this.process();
+                    if (this.url.length - i === 1) {
+                        // Last, then we dequeue.
+                        this.isProcessing = false;
+                        this.dequeue();
+                        void this.process();
+                    }
                 });
         });
     }
