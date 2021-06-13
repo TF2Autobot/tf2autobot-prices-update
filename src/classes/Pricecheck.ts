@@ -73,7 +73,7 @@ export class Pricecheck {
                             this.setSkusToCheck(overall);
 
                             setTimeout(() => {
-                                return this.startPriceCheck();
+                                this.startPriceCheck();
                             }, 60 * 60 * 1000);
                         })
                         .catch(err => {
@@ -81,9 +81,11 @@ export class Pricecheck {
                             console.log('Retrying in 10 minutes...');
 
                             setTimeout(() => {
-                                return retryGetOverall(this.pricer, this);
+                                retryGetOverall(this.pricer, this);
                             }, 10 * 60 * 1000);
                         });
+
+                    return;
                 }
 
                 void this.executeCheck();
