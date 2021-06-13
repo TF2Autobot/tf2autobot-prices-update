@@ -73,7 +73,7 @@ export class Pricecheck {
                             this.setSkusToCheck(overall);
 
                             setTimeout(() => {
-                                this.startPriceCheck();
+                                return this.startPriceCheck();
                             }, 60 * 60 * 1000);
                         })
                         .catch(err => {
@@ -81,7 +81,7 @@ export class Pricecheck {
                             console.log('Retrying in 10 minutes...');
 
                             setTimeout(() => {
-                                retryGetOverall(this.pricer, this);
+                                return retryGetOverall(this.pricer, this);
                             }, 10 * 60 * 1000);
                         });
                 }
@@ -107,7 +107,7 @@ export class Pricecheck {
     }
 }
 
-function retryGetOverall(pricer: Pricer, pricecheck: Pricecheck) {
+function retryGetOverall(pricer: Pricer, pricecheck: Pricecheck): void {
     pricer
         .getOverall()
         .then(overall => {
