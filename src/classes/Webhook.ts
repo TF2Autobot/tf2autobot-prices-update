@@ -2726,7 +2726,7 @@ export class Pricelist {
 
         // send key price update to only key price update webhook.
         keyPriceWebhookURLs.forEach((url, i) => {
-            priceUpdate.content = KeyPriceRoleIDs[i] ? `<@&${KeyPriceRoleIDs[i]}` : '';
+            priceUpdate.content = KeyPriceRoleIDs[i] === 'no role' ? '' : `<@&${KeyPriceRoleIDs[i]}`;
 
             sendWebhook(url, priceUpdate)
                 .then(() => {
