@@ -2677,10 +2677,7 @@ export class Pricelist {
         const priceUpdate: Webhook = {
             username: webhookDisplayName,
             avatar_url: webhookAvatarURL,
-            content:
-                KeyPriceRoleIDs.length > 1
-                    ? KeyPriceRoleIDs.map(id => `<@&${id}>`).join(' | ')
-                    : `<@&${KeyPriceRoleIDs[0]}>`,
+            content: '',
             embeds: [
                 {
                     author: {
@@ -2729,6 +2726,8 @@ export class Pricelist {
 
         // send key price update to only key price update webhook.
         keyPriceWebhookURLs.forEach((url, i) => {
+            priceUpdate.content = `<@&${KeyPriceRoleIDs[i]}`;
+
             sendWebhook(url, priceUpdate)
                 .then(() => {
                     console.debug(`Sent key prices update to Discord ${i}`);
@@ -2806,10 +2805,10 @@ export class PriceUpdateQueue {
         this.url.forEach((url, i) => {
             sendWebhook(url, this.priceUpdate[sku])
                 .then(() => {
-                    console.log(`Sent ${sku} update to Discord (${i}).`);
+                    console.log(`Sent ${sku} update to Discord ${i}`);
                 })
                 .catch(err => {
-                    console.log(`❌ Failed to send ${sku} price update webhook to Discord (${i}): `, err);
+                    console.log(`❌ Failed to send ${sku} price update webhook to Discord ${i}: `, err);
                 })
                 .finally(() => {
                     if (this.url.length - i === 1) {
