@@ -4,6 +4,9 @@ import Currencies from 'tf2-currencies-2';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { Item } from './Pricer';
 
+const keyPriceWebhookURLs = JSON.parse(process.env.KEYPRICE_WEBHOOK_URL) as string[];
+const KeyPriceRoleIDs = JSON.parse(process.env.KEYPRICE_ROLE_ID) as string[];
+
 interface Currency {
     keys: number;
     metal: number;
@@ -2668,7 +2671,10 @@ export class Pricelist {
         const priceUpdate: Webhook = {
             username: process.env.DISPLAY_NAME,
             avatar_url: process.env.AVATAR_URL,
-            content: `<@&${process.env.KEYPRICE_ROLE_ID}>`,
+            content:
+                KeyPriceRoleIDs.length > 1
+                    ? KeyPriceRoleIDs.map(id => `<@&${id}>`).join(' | ')
+                    : `<@&${KeyPriceRoleIDs[0]}>`,
             embeds: [
                 {
                     author: {
@@ -2716,13 +2722,15 @@ export class Pricelist {
         };
 
         // send key price update to only key price update webhook.
-        sendWebhook(process.env.KEYPRICE_WEBHOOK_URL, priceUpdate)
-            .then(() => {
-                console.debug(`Sent key prices update to Discord`);
-            })
-            .catch(err => {
-                console.debug(`❌ Failed to send key prices update webhook to Discord: `, err);
-            });
+        keyPriceWebhookURLs.forEach((url, i) => {
+            sendWebhook(url, priceUpdate)
+                .then(() => {
+                    console.debug(`Sent key prices update to Discord ${i}`);
+                })
+                .catch(err => {
+                    console.debug(`❌ Failed to send key prices update webhook to Discord ${i}: `, err);
+                });
+        });
     }
 }
 

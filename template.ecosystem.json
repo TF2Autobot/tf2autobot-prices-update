@@ -15,8 +15,8 @@
 
                 "MAIN_WEBHOOK_URL": [""],
 
-                "KEYPRICE_WEBHOOK_URL": "",
-                "KEYPRICE_ROLE_ID": "",
+                "KEYPRICE_WEBHOOK_URL": [""],
+                "KEYPRICE_ROLE_ID": [""],
 
                 "DISPLAY_NAME": "",
                 "AVATAR_URL": "",
