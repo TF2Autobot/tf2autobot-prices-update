@@ -4,6 +4,17 @@ import Currencies from 'tf2-currencies-2';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { Item } from './Pricer';
 
+const priceUpdateWebhookURLs = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
+
+const keyPriceWebhookURLs = JSON.parse(process.env.KEYPRICE_WEBHOOK_URL) as string[];
+const KeyPriceRoleIDs = JSON.parse(process.env.KEYPRICE_ROLE_ID) as string[];
+
+const webhookDisplayName = process.env.DISPLAY_NAME;
+const webhookAvatarURL = process.env.AVATAR_URL;
+const webhookNote = process.env.NOTE;
+
+const botVersion = process.env.BOT_VERSION;
+
 interface Currency {
     keys: number;
     metal: number;
@@ -2411,8 +2422,8 @@ export class Pricelist {
         const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
         const priceUpdate: Webhook = {
-            username: process.env.DISPLAY_NAME,
-            avatar_url: process.env.AVATAR_URL,
+            username: webhookDisplayName,
+            avatar_url: webhookAvatarURL,
             content: '',
             embeds: [
                 {
@@ -2426,7 +2437,7 @@ export class Pricelist {
                         text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
                             'Coordinated Universal Time',
                             'UTC'
-                        )} • v${process.env.BOT_VERSION}`
+                        )} • v${botVersion}`
                     },
                     thumbnail: {
                         url: itemImageUrlPrint
@@ -2453,7 +2464,7 @@ export class Pricelist {
                             })`
                         }
                     ],
-                    description: process.env.NOTE,
+                    description: webhookNote,
                     color: qualityColorPrint
                 }
             ]
@@ -2612,7 +2623,7 @@ export class Pricelist {
                     text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
                         'Coordinated Universal Time',
                         'UTC'
-                    )} • v${process.env.BOT_VERSION}`
+                    )} • v${botVersion}`
                 },
                 thumbnail: {
                     url: itemImageUrlPrint
@@ -2635,29 +2646,27 @@ export class Pricelist {
                         })`
                     }
                 ],
-                description: process.env.NOTE,
+                description: webhookNote,
                 color: qualityColorPrint
             });
         });
 
         const priceUpdate: Webhook = {
-            username: process.env.DISCORD_WEBHOOK_USERNAME,
-            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            username: webhookDisplayName,
+            avatar_url: webhookAvatarURL,
             content: '',
             embeds: embed
         };
 
         const skus = data.map(d => d.sku);
 
-        const urls = JSON.parse(process.env.MAIN_WEBHOOK_URL) as string[];
-
-        urls.forEach((url, i) => {
+        priceUpdateWebhookURLs.forEach((url, i) => {
             sendWebhook(url, priceUpdate)
                 .then(() => {
-                    console.debug(`Sent ${skus.join(', ')} update to Discord (${i})`);
+                    console.debug(`Sent ${skus.join(', ')} update to Discord ${i}`);
                 })
                 .catch(err => {
-                    console.debug(`❌ Failed to send ${skus.join(', ')} price update webhook to Discord (${i}): `, err);
+                    console.debug(`❌ Failed to send ${skus.join(', ')} price update webhook to Discord ${i}: `, err);
                 });
         });
     }
@@ -2666,9 +2675,9 @@ export class Pricelist {
         const itemImageUrl = this.schema.getItemByItemName('Mann Co. Supply Crate Key');
 
         const priceUpdate: Webhook = {
-            username: process.env.DISPLAY_NAME,
-            avatar_url: process.env.AVATAR_URL,
-            content: `<@&${process.env.KEYPRICE_ROLE_ID}>`,
+            username: webhookDisplayName,
+            avatar_url: webhookAvatarURL,
+            content: '',
             embeds: [
                 {
                     author: {
@@ -2681,7 +2690,7 @@ export class Pricelist {
                         text: `${data.sku} • ${String(new Date(data.time * 1000)).replace(
                             'Coordinated Universal Time',
                             'UTC'
-                        )} • v${process.env.BOT_VERSION}`
+                        )} • v${botVersion}`
                     },
                     thumbnail: {
                         url: itemImageUrl.image_url_large
@@ -2703,7 +2712,7 @@ export class Pricelist {
                             inline: true
                         }
                     ],
-                    description: process.env.NOTE,
+                    description: webhookNote,
                     color: '16766720'
                 }
             ]
@@ -2716,13 +2725,17 @@ export class Pricelist {
         };
 
         // send key price update to only key price update webhook.
-        sendWebhook(process.env.KEYPRICE_WEBHOOK_URL, priceUpdate)
-            .then(() => {
-                console.debug(`Sent key prices update to Discord`);
-            })
-            .catch(err => {
-                console.debug(`❌ Failed to send key prices update webhook to Discord: `, err);
-            });
+        keyPriceWebhookURLs.forEach((url, i) => {
+            priceUpdate.content = KeyPriceRoleIDs[i] ? `<@&${KeyPriceRoleIDs[i]}` : '';
+
+            sendWebhook(url, priceUpdate)
+                .then(() => {
+                    console.debug(`Sent key prices update to Discord ${i}`);
+                })
+                .catch(err => {
+                    console.debug(`❌ Failed to send key prices update webhook to Discord ${i}: `, err);
+                });
+        });
     }
 }
 
@@ -2792,10 +2805,10 @@ export class PriceUpdateQueue {
         this.url.forEach((url, i) => {
             sendWebhook(url, this.priceUpdate[sku])
                 .then(() => {
-                    console.log(`Sent ${sku} update to Discord (${i}).`);
+                    console.log(`Sent ${sku} update to Discord ${i}`);
                 })
                 .catch(err => {
-                    console.log(`❌ Failed to send ${sku} price update webhook to Discord (${i}): `, err);
+                    console.log(`❌ Failed to send ${sku} price update webhook to Discord ${i}: `, err);
                 })
                 .finally(() => {
                     if (this.url.length - i === 1) {
