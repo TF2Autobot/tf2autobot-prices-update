@@ -36,7 +36,6 @@ schemaManager.init(err => {
     }
 
     const pricelist = new Pricelist(schemaManager.schema);
-    const pricecheck = new Pricecheck(pricer);
 
     console.log('Getting pricelist from prices.tf...');
 
@@ -80,22 +79,26 @@ schemaManager.init(err => {
                 }
             });
 
-            console.log('Getting overall items from prices.tf...');
+            if (process.env.ENABLE_PRICECHECK === 'true') {
+                const pricecheck = new Pricecheck(pricer);
 
-            pricer
-                .getOverall()
-                .then(overall => {
-                    pricecheck.setSkusToCheck(overall);
-                    pricecheck.startPriceCheck();
-                })
-                .catch(err => {
-                    console.error('Failed to get overall items from prices.tf', err);
-                    console.log('Retrying in 10 minutes...');
+                console.log('Getting overall items from prices.tf...');
 
-                    setTimeout(() => {
-                        retryGetOverall(pricer, pricecheck);
-                    }, 10 * 60 * 1000);
-                });
+                pricer
+                    .getOverall()
+                    .then(overall => {
+                        pricecheck.setSkusToCheck(overall);
+                        pricecheck.startPriceCheck();
+                    })
+                    .catch(err => {
+                        console.error('Failed to get overall items from prices.tf', err);
+                        console.log('Retrying in 10 minutes...');
+
+                        setTimeout(() => {
+                            retryGetOverall(pricer, pricecheck);
+                        }, 10 * 60 * 1000);
+                    });
+            }
         });
     });
 });

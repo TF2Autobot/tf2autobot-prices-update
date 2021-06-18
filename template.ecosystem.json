@@ -20,7 +20,9 @@
 
                 "DISPLAY_NAME": "",
                 "AVATAR_URL": "",
-                "NOTE": ""
+                "NOTE": "",
+
+                "ENABLE_PRICECHECK": false
             }
         }
     ]
